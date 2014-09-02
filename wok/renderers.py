@@ -89,7 +89,31 @@ try:
         @classmethod
         def render(cls, plain):
             w = rst_html_writer()
-            return docutils.core.publish_parts(plain, writer=w)['body']
+            #return docutils.core.publish_parts(plain, writer=w)['body']       # original, but missing heading and/or title if it's a lone heading
+
+            # Workarounds and investigation:
+            #
+            # see: http://docutils.sourceforge.net/docs/api/publisher.html#publish-parts-details
+            #
+            #return docutils.core.publish_parts(plain, writer=w)['whole']      # complete, just for testing
+            #return docutils.core.publish_parts(plain, writer=w)['body_pre_docinfo'] + \
+            #       docutils.core.publish_parts(plain, writer=w)['body']       # really good, but missing the id of title div. If that's important...
+            #return docutils.core.publish_parts(plain, writer=w)['html_body']  # better, but might contain too much. E.g. a surrounding div.
+            #                                                                  # Need to be tested...
+            #
+            ## still the above workarounds have a "wrong" heading hierarchy as described here:
+            #
+            #      http://docutils.sourceforge.net/FAQ.html#unexpected-results-from-tools-rst2html-py-h1-h1-instead-of-h1-h2-why
+
+            # Solution:
+            #     Disable the promotion of a lone top-level section title to document title
+            #     (and subsequent section title to document subtitle promotion)
+            #
+            #      http://docutils.sourceforge.net/docs/api/publisher.html#id3
+            #      http://docutils.sourceforge.net/docs/user/config.html#doctitle-xform
+            #
+            overrides = {'doctitle_xform': False}
+            return docutils.core.publish_parts(plain, writer=w, settings_overrides=overrides)['body']
 
     all.append(ReStructuredText)
 except ImportError:
