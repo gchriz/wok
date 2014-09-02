@@ -1,6 +1,7 @@
 .*.swp
 *.pyc
 /build
+/dist
 /MANIFEST
 */output
 /venv/
