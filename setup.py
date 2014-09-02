@@ -36,4 +36,5 @@ setup(
     ],
     packages=['wok'],
     scripts=['scripts/wok'],
+    package_data = { 'wok': ['contrib/*.*'], }
 )
