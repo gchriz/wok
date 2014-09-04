@@ -5,6 +5,7 @@ import shutil
 from datetime import datetime
 from optparse import OptionParser, OptionGroup
 import logging
+import fnmatch
 
 import yaml
 
@@ -32,6 +33,7 @@ class Engine(object):
         'relative_urls': False,
         'locale': None,
         'markdown_extra_plugins': [],
+        'exclude_files': [],
     }
     SITE_ROOT = os.getcwd()
 
@@ -166,6 +168,15 @@ class Engine(object):
                         'Smith"] instead of "John Doe, Jane Smith". In config '
                         'file.')
 
+        # Make exclude_files a list, even only a single pattern was specified.
+        exclude_files = self.options.get('exclude_files', None)
+        if isinstance(exclude_files, str):
+            self.options['exclude_files'] = [e.strip() for e in exclude_files.split(',')]
+            if len(self.options['exclude_files']) > 1:
+                logging.warn('Deprecation Warning: Use YAML lists instead of '
+                        'CSV for multiple file exclusions. i.e. ["*.ignore", '
+                        '"__*"] instead of "*.ignore , __*" in config file.')
+
         if '{type}' in self.options['url_pattern']:
             logging.warn('Deprecation Warning: You should use {ext} instead '
                     'of {type} in the url pattern specified in the config '
@@ -283,6 +294,17 @@ class Engine(object):
                 # Don't parse hidden files.
                 if f.startswith('.'):
                     continue
+
+                # Don't parse excluded files.
+                if self.options['exclude_files']:
+                    exclude_it = False
+                    for exf in self.options['exclude_files']:
+                        if fnmatch.fnmatch(f, exf):
+                            logging.warning('File ignored due to user exclusion: {0}'.format(f))
+                            exclude_it = True
+                            break
+                    if exclude_it:
+                        continue
 
                 ext = f.split('.')[-1]
                 renderer = renderers.Plain

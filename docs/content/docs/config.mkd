@@ -31,6 +31,10 @@ are:
 - `relative_urls` (false) - If this option is turned on, then any urls
   generated will not include a leading '/'. If this is false, all urls
   generated will include a leading '/'.
+- `exclude_files` (none) - An optional list of file system globs like
+  ['\*.ignore', '__\*'] to exclude files from being parsed at all.
+  For example those files might be used for inclusion in rst files.
+  
 
 [content]: /docs/content/
 [URLs]: /docs/urls/
