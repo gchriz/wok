@@ -70,7 +70,7 @@ enabled.
 The raw renderer uses the content of files without any processing at all. It is
 also the default fall back render: if no other renderer has a matching
 extension, it will be used. This means that you can use any content that
-already has stylign applied, or that you do not want to style, such as directly
+already has styling applied, or that you do not want to style, such as directly
 writing HTML or including CSV files.
 
 Syntax Highlighting
