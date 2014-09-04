@@ -67,6 +67,8 @@ text editor. This renderer does not depend on any libraries, so is always
 enabled.
 
 ### Raw
+Extensions: `.raw`
+
 The raw renderer uses the content of files without any processing at all. It is
 also the default fall back render: if no other renderer has a matching
 extension, it will be used. This means that you can use any content that

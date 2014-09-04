@@ -20,6 +20,11 @@ class Renderer(object):
         return plain
 all.append(Renderer)
 
+class Raw(Renderer):
+    """Same as the default Renderer. For explicitely raw files."""
+    extensions = ['raw']
+all.append(Raw)
+
 class Plain(Renderer):
     """Plain text renderer. Replaces new lines with html </br>s"""
     extensions = ['txt']
@@ -136,8 +141,8 @@ except ImportError:
     logging.warn('Textile not enabled.')
 
 
-if len(all) <= 2:
+if len(all) <= 3:
     logging.error("You probably want to install either a Markdown library (one of "
           "'Markdown', or 'markdown2'), 'docutils' (for reStructuredText), or "
-          "'textile'. Otherwise only plain text input will be supported.  You "
-          "can install any of these with 'sudo pip install PACKAGE'.")
+          "'textile'. Otherwise only plain text input (and raw input) will be"
+          "supported. You can install any of these with 'sudo pip install PACKAGE'.")
