@@ -34,7 +34,12 @@ are:
 - `exclude_files` (none) - An optional list of file system globs like
   ['\*.ignore', '__\*'] to exclude files from being parsed at all.
   For example those files might be used for inclusion in rst files.
-  
+- `rst_doctitle` (false) - Disable rst/docutils' promotion of a lone top-level
+  section title to document title (was enabled up to wok 1.1.1 - by mistake).
+  Might be optionally enabled here (or on per page basis) again - for backwards
+  compatibility.
+- `rst_initial_header_level` (1) - Since rst/docutils is starting header level
+  with '1' per default, that might be changed here (or on per page basis).
 
 [content]: /docs/content/
 [URLs]: /docs/urls/
