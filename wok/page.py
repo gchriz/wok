@@ -76,7 +76,9 @@ class Page(object):
         page.options = options
         page.renderer = renderer
 
-        logging.info('Loading {0}'.format(os.path.basename(path)))
+        # Always print this to stderr (independent of logging level)
+        # to have a chance to locate file if there is an (e.g. rst) error on parsing
+        print >> sys.stderr, 'Loading {0}'.format(os.path.basename(path))
 
         if cls.tmpl_env is None:
             cls.create_tmpl_env(page.options)

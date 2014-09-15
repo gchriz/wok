@@ -101,7 +101,7 @@ class RebuildHandlerWrapper(object):
     def changed(self):
         """
         Returns if the contents of the monitored directories have changed since
-        the last call. It will return always return false on first run. 
+        the last call. It will always return false on first run. 
         """
         last_modtime_sum = self._modtime_sum
 
