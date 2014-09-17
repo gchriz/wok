@@ -196,7 +196,8 @@ class Engine(object):
 
         # add a subdir prefix to the output_dir, if present in the config
         self.options['server_root'] = self.options['output_dir']
-        self.options['output_dir'] = os.path.join(self.options['output_dir'], self.options.get('url_subdir', ''))
+        if self.options.get('url_subdir', ''):
+            self.options['output_dir'] = os.path.join(self.options['output_dir'], self.options['url_subdir'])
 
     def renderer_options(self):
         """Monkeypatches renderer options as in `config` file."""
