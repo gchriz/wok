@@ -88,7 +88,7 @@ class Page(object):
             page.original = f.read().decode('utf-8')
             splits = page.original.split('\n---\n')
 
-            if len(splits) > 3:
+            if len(splits) > 2:
                 logging.warning('Found more --- delimited sections in {0} '
                                 'than expected. Squashing the extra together.'
                                 .format(page.path))
