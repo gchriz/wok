@@ -26,6 +26,7 @@ class Engine(object):
         'content_dir': 'content',
         'template_dir': 'templates',
         'output_dir': 'output',
+        'working_dir': 'output.work',
         'media_dir': 'media',
         'site_title': 'Some random Wok site',
         'url_pattern': '/{category}/{slug}{page}.{ext}',
@@ -105,12 +106,16 @@ class Engine(object):
 
         # Dev server
         # ----------
+
+        #todo: Bug: on error (e.g. YAML error) no longer the output_dir is served,
+        #           but the current dir?!?!?!
+
         if cli_options.runserver:
             ''' Run the dev server if the user said to, and watch the specified
             directories for changes. The server will regenerate the entire wok
             site if changes are found after every request.
             '''
-            output_dir = os.path.join(self.options['server_root'])
+            output_dir = self.options['working_dir']
             host = '' if cli_options.address is None else cli_options.address
             port = 8000 if cli_options.port is None else cli_options.port
             server = dev_server(serv_dir=output_dir, host=host, port=port,
@@ -122,6 +127,10 @@ class Engine(object):
                 ],
                 change_handler=self.generate_site)
             server.run()
+
+        self.handle_output_dir()
+
+        sys.exit(self.error_count)
 
     def generate_site(self):
         ''' Generate the wok site '''
@@ -138,13 +147,26 @@ class Engine(object):
         self.run_hook('site.start')
 
         self.prepare_output()
-        self.load_pages()
+        self.error_count = self.load_pages()
         self.make_tree()
-        self.render_site()
+        self.render_site()  #todo: catch errors here too
 
         self.run_hook('site.done')
 
         os.chdir(orig_dir)
+
+    def handle_output_dir(self):
+        if self.error_count == 0:
+            os.chdir(self.SITE_ROOT)
+            if os.path.isdir(self.options['output_dir']+'.bak'):
+                shutil.rmtree(self.options['output_dir']+'.bak')
+            os.rename(self.options['output_dir'], self.options['output_dir']+'.bak')
+            os.rename(self.options['working_dir'], self.options['output_dir'])
+        else:
+            print ""
+            print "Result:"
+            print "Due to errors there has no (new) output directory '%s' been created!" % (self.options['output_dir'])
+            print "The files are still in '%s' and the last successful run remains in '%s'." % (self.options['working_dir'], self.options['output_dir'])
 
     def read_options(self):
         """Load options from the config file."""
@@ -193,6 +215,8 @@ class Engine(object):
                 logging.warn('Unable to set locale to `%s`: %s',
                     wanted_locale, err
                 )
+
+        #todo: make sure that output_dir is always only a name, not a path!
 
         # add a subdir prefix to the output_dir, if present in the config
         self.options['server_root'] = self.options['output_dir']
@@ -250,23 +274,26 @@ class Engine(object):
 
     def prepare_output(self):
         """
-        Prepare the output directory. Remove any contents there already, and
+        Prepare the output/working directory. Remove any contents there already, and
         then copy over the media files, if they exist.
         """
-        if os.path.isdir(self.options['output_dir']):
-            for name in os.listdir(self.options['output_dir']):
-                # Don't remove dotfiles
+
+        output_dir = self.options['working_dir']
+
+        if os.path.isdir(output_dir):
+            for name in os.listdir(output_dir):
+                # Don't remove dotfiles              #todo: why? What about copying from output_dir?
                 if name[0] == ".":
                     continue
-                path = os.path.join(self.options['output_dir'], name)
+                path = os.path.join(output_dir, name)
                 if os.path.isfile(path):
                     os.unlink(path)
                 else:
                     shutil.rmtree(path)
         else:
-            os.makedirs(self.options['output_dir'])
+            os.makedirs(output_dir)
 
-        self.run_hook('site.output.pre', self.options['output_dir'])
+        self.run_hook('site.output.pre', output_dir)
 
         # Copy the media directory to the output folder
         if os.path.isdir(self.options['media_dir']):
@@ -276,11 +303,11 @@ class Engine(object):
                     if os.path.isdir(path):
                         shutil.copytree(
                                 path,
-                                os.path.join(self.options['output_dir'], name),
+                                os.path.join(output_dir, name),
                                 symlinks=True
                         )
                     else:
-                        shutil.copy(path, self.options['output_dir'])
+                        shutil.copy(path, output_dir)
 
 
             # Do nothing if the media directory doesn't exist
@@ -288,10 +315,13 @@ class Engine(object):
                 logging.warning('There was a problem copying the media files '
                                 'to the output directory.')
 
-            self.run_hook('site.output.post', self.options['output_dir'])
+            self.run_hook('site.output.post', output_dir)
 
     def load_pages(self):
         """Load all the content files."""
+
+        error_count = 0
+
         # Load pages from hooks (pre)
         for pages in self.run_hook('site.content.gather.pre'):
             if pages:
@@ -329,6 +359,13 @@ class Engine(object):
                     renderer = renderers.Renderer
 
                 p = Page.from_file(os.path.join(root, f), self.options, self, renderer)
+
+                if p and p.errorlog:
+                    error_count += 1
+                    print "ERRORS in", p.filename
+                    for line in p.errorlog:
+                        print "   ", line
+
                 if p and p.meta['published']:
                     self.all_pages.append(p)
 
@@ -336,6 +373,8 @@ class Engine(object):
         for pages in self.run_hook('site.content.gather.post', self.all_pages):
             if pages:
                 self.all_pages.extend(pages)
+
+        return error_count
 
     def make_tree(self):
         """
@@ -406,7 +445,7 @@ class Engine(object):
 
             for k, v in self.options.iteritems():
                 if k not in ('site_title', 'output_dir', 'content_dir',
-                        'templates_dir', 'media_dir', 'url_pattern'):
+                        'working_dir', 'templates_dir', 'media_dir', 'url_pattern'):
 
                     templ_vars['site'][k] = v
 

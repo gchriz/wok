@@ -17,6 +17,13 @@ from wok import util
 from wok import renderers
 from wok.jinja import GlobFileLoader, AmbiguousTemplate
 
+class stdwriter(object):
+    log = []
+
+    def write(self, data):
+        self.log.append(data)
+
+
 class Page(object):
     """
     A single page on the website in all it's form (raw, rendered, templated) ,
@@ -86,7 +93,7 @@ class Page(object):
 
         with open(path, 'rU') as f:
             page.original = f.read().decode('utf-8')
-            splits = page.original.split('\n---\n')
+            splits = page.original.split('\n---\n')   # todo: what about trailing spaces?!?
 
             if len(splits) > 2:
                 logging.warning('Found more --- delimited sections in {0} '
@@ -101,7 +108,7 @@ class Page(object):
 
             elif len(splits) == 2:
                 header = splits[0]
-                page.meta = yaml.load(header)
+                page.meta = yaml.load(header)    #todo: catch yaml errors here
                 page.original = splits[1]
                 page.original_preview = page.meta.get('preview', '')
 
@@ -110,14 +117,23 @@ class Page(object):
                 page.meta = {}
                 page.original = '\n'.join(splits[1:])
                 page.original_preview = splits[1]
-                page.meta.update(yaml.load(header))
+                page.meta.update(yaml.load(header))   #todo: catch yaml errors here
                 logging.debug('Got preview')
 
         page.build_meta()
 
         page.engine.run_hook('page.render.pre', page)
+
+        logger = stdwriter()
+        logger.log = []
+        stderr_save = sys.stderr
+        sys.stderr = logger   # catch errors reported via stderr
+        # If there is an error in source rst/md/... it will come up in the following line(s?):
         page.meta['content'] = page.renderer.render(page.original, page.meta)  # the page.meta might contain renderer options...
         page.meta['preview'] = page.renderer.render(page.original_preview, page.meta)
+        sys.stderr = stderr_save
+        page.errorlog = logger.log
+
         page.engine.run_hook('page.render.post', page)
 
         return page
@@ -371,7 +387,7 @@ class Page(object):
         # ... and actions! (and logging, and hooking)
         self.engine.run_hook('page.template.pre', self, templ_vars)
         logging.debug('templ_vars.keys(): ' + repr(templ_vars.keys()))
-        self.rendered = self.template.render(templ_vars)
+        self.rendered = self.template.render(templ_vars)   # todo: catch jinja errors
         logging.debug('extra pages is: ' + repr(extra_pages))
         self.engine.run_hook('page.template.post', self)
 
@@ -470,7 +486,7 @@ class Page(object):
         """Write the page to a rendered file on disk."""
 
         # Use what we are passed, or the default given, or the current dir
-        base_path = self.options.get('output_dir', '.')
+        base_path = self.options.get('working_dir', '.')
         path = self.meta['path']
         if path and path[0] == '/':
             path = path[1:]
