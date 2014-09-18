@@ -17,12 +17,16 @@ from wok import util
 from wok import renderers
 from wok.jinja import GlobFileLoader, AmbiguousTemplate
 
+
 class stdwriter(object):
+    """
+    Used to catch stderr (or stdout).
+    """
+
     log = []
 
     def write(self, data):
         self.log.append(data)
-
 
 class Page(object):
     """
@@ -93,7 +97,8 @@ class Page(object):
 
         with open(path, 'rU') as f:
             page.original = f.read().decode('utf-8')
-            splits = page.original.split('\n---\n')   # todo: what about trailing spaces?!?
+            # Note: trailing whitespace after the "---" is allowed now:
+            splits = re.split('\n---[ \t]*\n', page.original)
 
             if len(splits) > 2:
                 logging.warning('Found more --- delimited sections in {0} '
