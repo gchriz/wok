@@ -95,6 +95,11 @@ class Page(object):
         page.path = path
         page.filename = os.path.basename(path)
 
+        logger = stdwriter()
+        stderr_save = sys.stderr
+
+        page.errorlog = []
+
         with open(path, 'rU') as f:
             page.original = f.read().decode('utf-8')
             # Note: trailing whitespace after the "---" is allowed now:
@@ -113,7 +118,11 @@ class Page(object):
 
             elif len(splits) == 2:
                 header = splits[0]
-                page.meta = yaml.load(header)    #todo: catch yaml errors here
+                try:
+                    page.meta = yaml.load(header)
+                except yaml.scanner.ScannerError, e:
+                    page.errorlog.append("=== YAML-Errors ===")
+                    page.errorlog.extend(e.__str__().split("\n"))
                 page.original = splits[1]
                 page.original_preview = page.meta.get('preview', '')
 
@@ -122,22 +131,26 @@ class Page(object):
                 page.meta = {}
                 page.original = '\n'.join(splits[1:])
                 page.original_preview = splits[1]
-                page.meta.update(yaml.load(header))   #todo: catch yaml errors here
+                try:
+                    page.meta.update(yaml.load(header))
+                except yaml.scanner.ScannerError, e:
+                    page.errorlog.append("=== YAML-Errors ===")
+                    page.errorlog.extend(e.__str__().split("\n"))
                 logging.debug('Got preview')
 
         page.build_meta()
 
         page.engine.run_hook('page.render.pre', page)
 
-        logger = stdwriter()
         logger.log = []
-        stderr_save = sys.stderr
         sys.stderr = logger   # catch errors reported via stderr
         # If there is an error in source rst/md/... it will come up in the following line(s?):
         page.meta['content'] = page.renderer.render(page.original, page.meta)  # the page.meta might contain renderer options...
         page.meta['preview'] = page.renderer.render(page.original_preview, page.meta)
         sys.stderr = stderr_save
-        page.errorlog = logger.log
+        if logger.log:
+            page.errorlog.append("=== Renderer-Errors ===")
+            page.errorlog.extend(logger.log)
 
         page.engine.run_hook('page.render.post', page)
 
