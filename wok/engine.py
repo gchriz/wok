@@ -172,12 +172,22 @@ class Engine(object):
         """Load options from the config file."""
         self.options = Engine.default_options.copy()
 
-        if os.path.isfile('config'):
-            with open('config') as f:
+        if os.path.isfile('wokconfig'):
+            with open('wokconfig') as f:
                 yaml_config = yaml.load(f)
 
             if yaml_config:
                 self.options.update(yaml_config)
+        else:
+            logging.warn("Deprecation: You are still using the old config file name 'config'."
+	                 " The preferred new name is 'wokconfig'.")
+
+            if os.path.isfile('config'):
+                with open('config') as f:
+                    yaml_config = yaml.load(f)
+
+                if yaml_config:
+                    self.options.update(yaml_config)
 
         # Make authors a list, even only a single author was specified.
         authors = self.options.get('authors', self.options.get('author', None))
@@ -189,7 +199,7 @@ class Engine(object):
             if len(self.options['authors']) > 1:
                 logging.warn('Deprecation Warning: Use YAML lists instead of '
                         'CSV for multiple authors. i.e. ["John Doe", "Jane '
-                        'Smith"] instead of "John Doe, Jane Smith". In config '
+                        'Smith"] instead of "John Doe, Jane Smith". In wokconfig '
                         'file.')
 
         # Make exclude_files a list, even only a single pattern was specified.
@@ -199,11 +209,11 @@ class Engine(object):
             if len(self.options['exclude_files']) > 1:
                 logging.warn('Deprecation Warning: Use YAML lists instead of '
                         'CSV for multiple file exclusions. i.e. ["*.ignore", '
-                        '"__*"] instead of "*.ignore , __*" in config file.')
+                        '"__*"] instead of "*.ignore , __*" in wokconfig file.')
 
         if '{type}' in self.options['url_pattern']:
             logging.warn('Deprecation Warning: You should use {ext} instead '
-                    'of {type} in the url pattern specified in the config '
+                    'of {type} in the url pattern specified in the wokconfig '
                     'file.')
 
         # Set locale if needed
@@ -224,7 +234,7 @@ class Engine(object):
             self.options['output_dir'] = os.path.join(self.options['output_dir'], self.options['url_subdir'])
 
     def renderer_options(self):
-        """Monkeypatches renderer options as in `config` file."""
+        """Monkeypatches renderer options as in `wokconfig` file."""
         # Markdown extra plugins
         markdown_extra_plugins = \
             self.options.get('markdown_extra_plugins', [])
