@@ -27,6 +27,7 @@ class Engine(object):
         'template_dir': 'templates',
         'output_dir': 'output',
         'working_dir': 'output.work',
+        'create_backup' : False,
         'media_dir': 'media',
         'site_title': 'Some random Wok site',
         'url_pattern': '/{category}/{slug}{page}.{ext}',
@@ -160,7 +161,11 @@ class Engine(object):
             os.chdir(self.SITE_ROOT)
             if os.path.isdir(self.options['output_dir']+'.bak'):
                 shutil.rmtree(self.options['output_dir']+'.bak')
-            os.rename(self.options['output_dir'], self.options['output_dir']+'.bak')
+            if os.path.isdir(self.options['output_dir']):
+                if self.options['create_backup']:
+                    os.rename(self.options['output_dir'], self.options['output_dir']+'.bak')
+                else:
+                    shutil.rmtree(self.options['output_dir'])
             os.rename(self.options['working_dir'], self.options['output_dir'])
         else:
             print ""
@@ -455,7 +460,8 @@ class Engine(object):
 
             for k, v in self.options.iteritems():
                 if k not in ('site_title', 'output_dir', 'content_dir',
-                        'working_dir', 'templates_dir', 'media_dir', 'url_pattern'):
+                        'working_dir', 'create_backup', 'templates_dir', 
+			'media_dir', 'url_pattern'):
 
                     templ_vars['site'][k] = v
 
