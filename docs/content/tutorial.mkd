@@ -224,6 +224,15 @@ any files have changed. This way you can edit a content, template, or media
 file, and then reload your browser to see the changes, instead of having to
 restart the server.
 
+Note: Since wok version 1.1.2 the output files are no longer put into the
+`output_dir` directly but get generated into a `working_dir` temporarily.
+Only if no errors occured the complete `working_dir` is renamed to the
+`output_dir`. Otherwise the `working_dir` is kept, in parallel to any older
+`output_dir` which in this case still contains the files of the last successful
+run. The intention is to never destroy a built website due to parsing/rendering
+errors.
+
+
 # Next steps
 
 Congratulations, you have made a simple wok site. This should be enough to make

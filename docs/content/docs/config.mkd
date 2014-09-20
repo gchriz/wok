@@ -8,7 +8,11 @@ The file is a YAML file. Possible configuration options (and their defaults)
 are:
 
 - `output_dir` ('output') - The directory in which to place the generated
-  files, e.g., `output_dir: output`.
+  files if no errors occur, e.g., `output_dir: output`.
+- `working_dir` ('output.work') - The directory in which to place the files
+  during generation, e.g., `working_dir: output.work`.
+- `create_backup` (false) - If this option is set to 'true' the last output
+  directory will be saved as .bak when a new one is created.
 - `create_backup` (false) - If this option is set to 'true' the last output
   directory will be saved as .bak when a new one is created.
 - `content_dir` ('content') - The directory where content files are stored,
