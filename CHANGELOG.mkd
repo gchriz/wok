@@ -1,3 +1,31 @@
+Version 1.1.2c2
+---------------
+In which Christian Ziemski (gchriz) discovered wok.
+
+### Setup
+-   Relaxed the requirements in setup.py a bit again
+-   Possible fix for the "can't find contrib.hooks" when running wok in its docs directory
+
+### Config
+-   Changed config file name from 'config' to 'wokconfig'.
+-   New config file option 'exclude_files' to exclude files from being parsed.
+-   New config file option 'create_backup' to create an output.bak directory.
+-   Make sure that option 'output_dir' isn't any path but only a name.
+
+### Parsing and rendering
+-   rst: Fixed rst bug: Ignored "initial lonely heading interpreted as title"
+-   rst: New option 'rst_doctitle' to handle the heading/title behaviour
+-   rst: New option: 'rst_initial_header_level'
+-   raw: Added raw renderer explicitely. Extension 'raw'
+-   Catch many YAML and parse errors and write output to new 'working_dir' until error-free.
+-   Trailing whitespace after the '---' devider is tolerated now.
+
+### Fixes
+-   Bugfix: removed trailing slash on output_dir
+-   Bugfix: check for metadata section count
+-   Some docu fixes (typos, additional infos)
+
+
 Version 1.1.1
 -------------
 In which Travis rocks and OSULUG's website gets fixed.
