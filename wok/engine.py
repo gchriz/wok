@@ -231,7 +231,13 @@ class Engine(object):
                     wanted_locale, err
                 )
 
-        #todo: make sure that output_dir is always only a name, not a path!
+        # make sure that output_dir is always only a name, not any path!
+        outdir = os.path.basename(self.options['output_dir'].strip("./"))
+        if outdir != self.options['output_dir']:
+            logging.error("Option 'output_dir' must not contain a path (%s), "
+                          "only a directory name! Stripped it down to '%s'."
+                          % (self.options['output_dir'], outdir))
+        self.options['output_dir'] = outdir    
 
         # add a subdir prefix to the output_dir, if present in the config
         self.options['server_root'] = self.options['output_dir']
