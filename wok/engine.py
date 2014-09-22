@@ -185,7 +185,7 @@ class Engine(object):
                 self.options.update(yaml_config)
         else:
             logging.warn("Deprecation: You are still using the old config file name 'config'."
-	                 " The preferred new name is 'wokconfig'.")
+                         " The preferred new name is 'wokconfig'.")
 
             if os.path.isfile('config'):
                 with open('config') as f:
@@ -467,7 +467,7 @@ class Engine(object):
             for k, v in self.options.iteritems():
                 if k not in ('site_title', 'output_dir', 'content_dir',
                         'working_dir', 'create_backup', 'templates_dir', 
-			'media_dir', 'url_pattern'):
+                        'media_dir', 'url_pattern'):
 
                     templ_vars['site'][k] = v
 
