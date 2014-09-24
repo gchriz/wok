@@ -5,6 +5,7 @@ from collections import namedtuple
 from datetime import datetime, date, time
 import logging
 import copy
+import traceback
 
 # Libraries
 import jinja2
@@ -405,7 +406,14 @@ class Page(object):
         # ... and actions! (and logging, and hooking)
         self.engine.run_hook('page.template.pre', self, templ_vars)
         logging.debug('templ_vars.keys(): ' + repr(templ_vars.keys()))
-        self.rendered = self.template.render(templ_vars)   # todo: catch jinja errors
+
+        try:
+            self.rendered = self.template.render(templ_vars)
+        except jinja2.exceptions.TemplateError, e:
+            self.errorlog.append("in Jinja template:")
+            self.errorlog.append("\n".join(traceback.format_exc().split("\n")[-4:]))
+            self.rendered = ""
+
         logging.debug('extra pages is: ' + repr(extra_pages))
         self.engine.run_hook('page.template.post', self)
 

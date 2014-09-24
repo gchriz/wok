@@ -135,6 +135,9 @@ class Engine(object):
 
     def generate_site(self):
         ''' Generate the wok site '''
+
+        self.error_count = 0
+
         orig_dir = os.getcwd()
         os.chdir(self.SITE_ROOT)
 
@@ -148,9 +151,9 @@ class Engine(object):
         self.run_hook('site.start')
 
         self.prepare_output()
-        self.error_count = self.load_pages()
+        self.error_count += self.load_pages()
         self.make_tree()
-        self.render_site()  #todo: catch errors here too
+        self.error_count += self.render_site()
 
         self.run_hook('site.done')
 
@@ -361,7 +364,7 @@ class Engine(object):
                     exclude_it = False
                     for exf in self.options['exclude_files']:
                         if fnmatch.fnmatch(f, exf):
-                            logging.warning('File ignored due to user exclusion: {0}'.format(f))
+                            logging.warning('File ignored due to user exclusion: {0}\n'.format(f))
                             exclude_it = True
                             break
                     if exclude_it:
@@ -386,6 +389,8 @@ class Engine(object):
                     print "ERRORS in", p.filename
                     for line in p.errorlog:
                         print "   ", line
+                    print
+                    p.errorlog = []  # clear for next stage!
 
                 if p and p.meta['published']:
                     self.all_pages.append(p)
@@ -435,6 +440,8 @@ class Engine(object):
 
     def render_site(self):
         """Render every page and write the output files."""
+        error_count = 0
+        print "******************+render_site"
         # Gather tags
         tag_set = set()
         for p in self.all_pages:
@@ -477,12 +484,21 @@ class Engine(object):
             # Rendering the page might give us back more pages to render.
             new_pages = p.render(templ_vars)
 
+            if p and p.errorlog:
+                error_count += 1
+                print "ERRORS while working on", p.filename
+                for line in p.errorlog:
+                    print "   ", line
+                p.errorlog = []     # just cleanup
+
             if p.meta['make_file']:
                 p.write()
 
             if new_pages:
                 logging.debug('found new_pages')
                 self.all_pages += new_pages
+
+        return error_count
 
 if __name__ == '__main__':
     Engine()
