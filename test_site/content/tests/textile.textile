@@ -1,0 +1,61 @@
+title: textile Test Page
+slug: textile
+category: tests
+tags: [textile, sample]
+---
+
+( Excerpt from "(classname)https://en.wikipedia.org/wiki/Textile_(markup_language)(textile at Wikipedia)":https://en.wikipedia.org/wiki/Textile_(markup_language) )
+
+_emphasized_ (i.e., italics)
+
+*strongly emphasized* (i.e., boldface)
+
+* An item in a bulleted (unordered) list
+* Another item in a bulleted list
+** Second Level
+** Second Level Items
+*** Third level
+
+# An item in an enumerated (ordered) list xxxxxxx
+# Another item in an enumerated list yyyyyy
+## Another level in an enumerated list vvvvvvvv
+
+
+Tables
+
+A pipe character must be at the beginning and end of every row.
+
+|_. column name1 |_. column name2 |_. column name3 |
+| laura | aliaga | Cell 3 |
+| Manuel | Vasquez | Cell 3 |
+
+
+
+Headings
+
+You must leave a blank line after each heading.
+
+h1(#id). An HTML first-level heading
+
+h2. An HTML second-level heading
+
+h3. An HTML third-level heading
+
+h4. An HTML fourth-level heading
+
+h5. An HTML fifth-level heading
+
+h6. An HTML sixth-level heading
+
+
+Blockquotes
+
+byq. This text will be enclosed in an HTML blockquote element.
+
+
+Notes
+
+Text with a link to some reference[1]
+
+fn1. Footnote explanation
+
