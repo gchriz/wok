@@ -9,9 +9,9 @@
 {% for subpage in page.subpages %}
     <a href="{{subpage.url}}"><h2>{{subpage.title}}</h2></a>
     {{subpage.content}}
+    <hr>
 {% endfor %}
 
-<hr>
 
 <h2>Tags</h2>
 {% for tag in site.tags %}
@@ -25,7 +25,8 @@
 
 <hr>
 
-<pre>{{ site.pages }}</pre>
+<pre>
+site.pages: {{ site.pages }}</pre>
 
 <hr>
 
