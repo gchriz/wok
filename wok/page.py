@@ -145,9 +145,15 @@ class Page(object):
 
         logger.log = []
         sys.stderr = logger   # catch errors reported via stderr
-        # If there is an error in source rst/md/... it will come up in the following line(s?):
-        page.meta['content'] = page.renderer.render(page.original, page.meta)  # the page.meta might contain renderer options...
-        page.meta['preview'] = page.renderer.render(page.original_preview, page.meta)
+        # If there is an error in source rst/md/... it will come up in the following line(s?) on stderr.
+        #
+        # Note: Most of the times the try/except wouldn't be needed,
+        #       but e.g. in rst a failing ".. include" raises an exception and not only prints the error on stderr!
+        try:
+            page.meta['content'] = page.renderer.render(page.original, page.meta)  # the page.meta might contain renderer options...
+            page.meta['preview'] = page.renderer.render(page.original_preview, page.meta)
+        except Exception as e:
+            print >> sys.stderr, e
         sys.stderr = stderr_save
         if logger.log:
             page.errorlog.append("=== Renderer-Errors ===")

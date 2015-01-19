@@ -441,7 +441,7 @@ class Engine(object):
     def render_site(self):
         """Render every page and write the output files."""
         error_count = 0
-        print "******************+render_site"
+        logging.info("****************** render_site")
         # Gather tags
         tag_set = set()
         for p in self.all_pages:
