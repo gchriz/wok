@@ -3,6 +3,7 @@ import os
 import sys
 import shutil
 from datetime import datetime
+import time
 from optparse import OptionParser, OptionGroup
 import logging
 import fnmatch
@@ -159,17 +160,87 @@ class Engine(object):
 
         os.chdir(orig_dir)
 
+
+    def vss_rename(self, src, dest):
+        """ virus scanner safe os.rename
+
+        This problem only applies to Windows!
+
+        Some virus scanners (e.g. Avira Antivir) are (badly) locking files during scan
+        and therefore prevent a rename of them or the containing directory.
+        A Windows error [5] Access denied is raised then.
+
+        One possible workaround is to exclude the problematic directories (here: wok output) from virus scan.
+
+        But a better one might be the one below.
+        It tries several times with a little wait inbetween to rename.
+        If it doesn't succedd within a few seconds finally an error is raised.
+        Usually one wait (1/10 second) is enough.
+
+        References:
+
+        The one with the solution for me:
+            http://bytes.com/topic/python/answers/516413-intermittent-permission-denied-errors-when-using-os-rename-recently-deleted-path
+
+        More interesting finding on the way:
+            http://stackoverflow.com/questions/3764072/c-win32-how-to-wait-for-a-pending-delete-to-complete
+            http://bugs.python.org/issue1425127     os.remove OSError: [Errno 13] Permission denied
+            https://groups.google.com/forum/#!topic/comp.lang.python/8uDyIZQVzJ8
+            http://mercurial.selenic.com/wiki/UnlinkingFilesOnWindows
+            http://mercurial.markmail.org/thread/t5ecar6sn3ekifo6   How Mercurial could be made working with Virus Scanners on Windows
+            https://msdn.microsoft.com/en-us/library/aa363858%28VS.85%29.aspx
+            http://bz.selenic.com/show_bug.cgi?id=2524  update loses working copy files on Windows for open files
+        """
+
+        #print "Trying to rename '%s' to '%s' now" %(src, dest)
+        MAX_RETRY_DURATION_s = 3
+        startTime = time.clock()
+        while True:
+            try:
+                os.rename(src, dest)
+                break
+            except OSError as e:
+                #print "Error", e, "waiting a bit..."
+                if (time.clock() - startTime) > MAX_RETRY_DURATION_s:
+                    raise
+                else:
+                    time.sleep(0.1)
+
+
     def handle_output_dir(self):
         if self.error_count == 0:
+
             os.chdir(self.SITE_ROOT)
             if os.path.isdir(self.options['output_dir']+'.bak'):
                 shutil.rmtree(self.options['output_dir']+'.bak')
             if os.path.isdir(self.options['output_dir']):
                 if self.options['create_backup']:
-                    os.rename(self.options['output_dir'], self.options['output_dir']+'.bak')
+                    # This rename (the original os.rename()) wasn't a problem,
+                    # but using the safe call here too now.
+                    self.vss_rename(self.options['output_dir'], self.options['output_dir']+'.bak')
                 else:
+                    #another tried workaround for the virus scanner problem. Didn't help.
+                    #tmpname = self.options['output_dir']+'.del'+ datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")
+                    #print "Renaming output to", tmpname, " - as bughandling"
+                    #os.rename(self.options['output_dir'], tmpname)
+                    ##print "and delete it then"
+                    ##shutil.rmtree(tmpname)
                     shutil.rmtree(self.options['output_dir'])
-            os.rename(self.options['working_dir'], self.options['output_dir'])
+
+            #if os.path.isdir(self.options['output_dir']):
+            #    print self.options['output_dir'], "found"
+            #else:
+            #    print "NO", self.options['output_dir'], "found"
+            #
+            #if os.path.isdir(self.options['working_dir']):
+            #    print self.options['working_dir'], "found"
+            #else:
+            #    print "NO", self.options['working_dir'], "found"
+
+            # Here the originally used os.rename() often failed on Windows.
+            # See documentation in vss_rename().
+            self.vss_rename(self.options['working_dir'], self.options['output_dir'])
+
         else:
             print ""
             print "Result:"
@@ -240,7 +311,7 @@ class Engine(object):
             logging.error("Option 'output_dir' must not contain a path (%s), "
                           "only a directory name! Stripped it down to '%s'."
                           % (self.options['output_dir'], outdir))
-        self.options['output_dir'] = outdir    
+        self.options['output_dir'] = outdir
 
         # add a subdir prefix to the output_dir, if present in the config
         self.options['server_root'] = self.options['output_dir']
@@ -364,7 +435,7 @@ class Engine(object):
                     exclude_it = False
                     for exf in self.options['exclude_files']:
                         if fnmatch.fnmatch(f, exf):
-                            logging.warning('File ignored due to user exclusion: {0}\n'.format(f))
+                            logging.warning('File ignored due to user exclusion: {0}'.format(f))
                             exclude_it = True
                             break
                     if exclude_it:
@@ -473,7 +544,7 @@ class Engine(object):
 
             for k, v in self.options.iteritems():
                 if k not in ('site_title', 'output_dir', 'content_dir',
-                        'working_dir', 'create_backup', 'templates_dir', 
+                        'working_dir', 'create_backup', 'templates_dir',
                         'media_dir', 'url_pattern'):
 
                     templ_vars['site'][k] = v
