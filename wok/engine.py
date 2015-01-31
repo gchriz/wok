@@ -104,6 +104,20 @@ class Engine(object):
 
         self.runserver = cli_options.runserver
 
+        serverrun_flag = ".server_running"
+
+        if os.path.exists(serverrun_flag):
+            print ""
+            print "Attention: 'wok --server' seems to be running with this directory as source."
+            print "           Starting another run or instance isn't a good idea..."
+            print ""
+            print "           You might want to stop the server (via Ctrl-C in it's window)."
+            print ""
+            print "           If you are sure that there isn't a server instance running,"
+            print "           you should delete file '%s'." % serverrun_flag
+            print ""
+            sys.exit(1)
+
         # Action!
         # -------
         self.generate_site()
@@ -130,7 +144,17 @@ class Engine(object):
                     self.options['content_dir']
                 ],
                 change_handler=self.generate_site)
+
+            with open(serverrun_flag, "w") as f:
+                f.write("")
             server.run()
+
+            # server.run() leaves in output_dir!?
+            os.chdir(self.SITE_ROOT)
+            try:
+                self.vss_remove(serverrun_flag)
+            except WindowsError as e:
+                pass
 
         self.handle_output_dir()
 
@@ -208,6 +232,22 @@ class Engine(object):
                 else:
                     time.sleep(0.1)
 
+    def vss_remove(self, f):
+        """ virus scanner safe os.remove
+        """
+        #print "Trying to remove '%s' now" %(f)
+        MAX_RETRY_DURATION_s = 3
+        startTime = time.clock()
+        while True:
+            try:
+                os.remove(f)
+                break
+            except (OSError, WindowsError) as e:
+                #print "Error", e, "waiting a bit..."
+                if (time.clock() - startTime) > MAX_RETRY_DURATION_s:
+                    raise
+                else:
+                    time.sleep(0.1)
 
     def handle_output_dir(self):
         if self.error_count == 0:
