@@ -102,6 +102,8 @@ class Engine(object):
 
         logging.basicConfig(**logging_options)
 
+        self.runserver = cli_options.runserver
+
         # Action!
         # -------
         self.generate_site()
@@ -551,6 +553,11 @@ class Engine(object):
 
             if 'author' in self.options:
                 templ_vars['site']['author'] = self.options['author']
+
+            if self.runserver:
+                templ_vars['site']['base'] = '<base href="">'
+            else:
+                templ_vars['site']['base'] = '<base href="%s">' % self.options.get("base", "")
 
             # Rendering the page might give us back more pages to render.
             new_pages = p.render(templ_vars)
