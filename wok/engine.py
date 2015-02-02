@@ -249,12 +249,29 @@ class Engine(object):
                 else:
                     time.sleep(0.1)
 
+    def vss_rmtree(self, d):
+        """ virus scanner safe shutil.rmtree
+        """
+        #print "Trying to remove directory tree '%s' now" %(d)
+        MAX_RETRY_DURATION_s = 3
+        startTime = time.clock()
+        while True:
+            try:
+                shutil.rmtree(d)
+                break
+            except (WindowsError, OSError) as e:
+                #print "Error", e, "waiting a bit..."
+                if (time.clock() - startTime) > MAX_RETRY_DURATION_s:
+                    raise
+                else:
+                    time.sleep(0.1)
+
     def handle_output_dir(self):
         if self.error_count == 0:
 
             os.chdir(self.SITE_ROOT)
             if os.path.isdir(self.options['output_dir']+'.bak'):
-                shutil.rmtree(self.options['output_dir']+'.bak')
+                self.vss_rmtree(self.options['output_dir']+'.bak')
             if os.path.isdir(self.options['output_dir']):
                 if self.options['create_backup']:
                     # This rename (the original os.rename()) wasn't a problem,
@@ -267,7 +284,7 @@ class Engine(object):
                     #os.rename(self.options['output_dir'], tmpname)
                     ##print "and delete it then"
                     ##shutil.rmtree(tmpname)
-                    shutil.rmtree(self.options['output_dir'])
+                    self.vss_rmtree(self.options['output_dir'])
 
             #if os.path.isdir(self.options['output_dir']):
             #    print self.options['output_dir'], "found"
