@@ -118,8 +118,21 @@ try:
             #      http://docutils.sourceforge.net/docs/api/publisher.html#id3
             #      http://docutils.sourceforge.net/docs/user/config.html#doctitle-xform
             #
+            # Additionally:
+            #      'strip_comments':
+            #      Strip the possible comments existing in the source text from target HTML document.
+            #      Since that might be the "normal" expected behavior there is no option (yet).
+            #
+            #      'toc_backlinks':
+            #      Enable backlinks from section titles to
+            #        * table of contents entries ("entry"),
+            #        * to the top of the TOC ("top"), or
+            #        * disable ("none").
+
             overrides = { 'doctitle_xform': page_meta.get('rst_doctitle', cls.options['doctitle']),
                           'initial_header_level': page_meta.get('rst_initial_header_level', cls.options['initial_header_level']),
+                          'strip_comments' : True,
+                          'toc_backlinks' : 'entry',
                         }
             return docutils.core.publish_parts(plain, writer=w, settings_overrides=overrides)['body']
 
