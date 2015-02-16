@@ -498,7 +498,7 @@ class Engine(object):
                     exclude_it = False
                     for exf in self.options['exclude_files']:
                         if fnmatch.fnmatch(f, exf):
-                            logging.warning('File ignored due to user exclusion: {0}'.format(f))
+                            logging.info('File ignored due to user exclusion: {0}'.format(f))
                             exclude_it = True
                             break
                     if exclude_it:
