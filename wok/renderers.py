@@ -121,7 +121,6 @@ try:
             # Additionally:
             #      'strip_comments':
             #      Strip the possible comments existing in the source text from target HTML document.
-            #      Since that might be the "normal" expected behavior there is no option (yet).
             #
             #      'toc_backlinks':
             #      Enable backlinks from section titles to
@@ -131,8 +130,8 @@ try:
 
             overrides = { 'doctitle_xform': page_meta.get('rst_doctitle', cls.options['doctitle']),
                           'initial_header_level': page_meta.get('rst_initial_header_level', cls.options['initial_header_level']),
-                          'strip_comments' : True,
-                          'toc_backlinks' : 'entry',
+                          'strip_comments' : page_meta.get('rst_strip_comments', cls.options['strip_comments']),
+                          'toc_backlinks' : page_meta.get('rst_toc_backlinks', cls.options['toc_backlinks']),
                         }
             return docutils.core.publish_parts(plain, writer=w, settings_overrides=overrides)['body']
 

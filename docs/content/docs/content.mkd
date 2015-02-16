@@ -63,6 +63,11 @@ pages in the YAML metadata.
     (for backwards compatibility - was enabled up to wok 1.1.1 - a bug?)
 -   `rst_initial_header_level` - To change rst/docutils starting header level
     from default '1'. 
+-   `rst_strip_comments` - Strip the possible comments existing in the rst
+     source text from target HTML document.
+-   `rst_toc_backlinks` - Enable backlinks from section titles to
+     the rst-generated table of contents entries ("entry", the default),
+     the top of the TOC ("top"), or disable backlinks ("none").
 
 [8601]: http://en.wikipedia.org/wiki/ISO_8601
 [URLs]: /docs/urls/

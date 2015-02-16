@@ -39,6 +39,8 @@ class Engine(object):
         'exclude_files': [],
         'rst_doctitle': False,
         'rst_initial_header_level': 1,
+        'rst_strip_comments' : True,
+        'rst_toc_backlinks' : 'entry',
     }
     SITE_ROOT = os.getcwd()
 
@@ -392,6 +394,8 @@ class Engine(object):
             renderers.ReStructuredText.options.update( \
                 {'doctitle' : self.options.get('rst_doctitle', False), \
                  'initial_header_level' : self.options.get('rst_initial_header_level', 1),
+                 'strip_comments' : self.options.get('rst_strip_comments', True),
+                 'toc_backlinks' : self.options.get('rst_toc_backlinks', 'entry'),
                 })
 
     def sanity_check(self):

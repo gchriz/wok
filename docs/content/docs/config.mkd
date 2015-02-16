@@ -47,6 +47,11 @@ are:
   compatibility.
 - `rst_initial_header_level` (1) - Since rst/docutils is starting header level
   with '1' per default, that might be changed here (or on per page basis).
+- `rst_strip_comments` (true) - Strip the possible comments existing in the
+  rst source text from target HTML document.
+- `rst_toc_backlinks` (entry) - Enable backlinks from section titles to
+  the rst-generated table of contents entries ("entry"),
+  the top of the TOC ("top"), or disable backlinks ("none").
 
 [content]: /docs/content/
 [URLs]: /docs/urls/
