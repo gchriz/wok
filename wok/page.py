@@ -103,21 +103,18 @@ class Page(object):
 
         with open(path, 'rU') as f:
             page.original = f.read().decode('utf-8')
-            # Note: trailing whitespace after the "---" is allowed now:
+            # Note: trailing whitespace after the "---" is allowed:
             splits = re.split('\n---[ \t]*\n', page.original)
 
-            if len(splits) > 2:
-                logging.warning('Found more --- delimited sections in {0} '
-                                'than expected. Squashing the extra together.'
-                                .format(page.path))
+            dashed_sections = len(splits)
 
             # Handle the case where no meta data was provided
-            if len(splits) == 1:
+            if dashed_sections == 1:
                 page.original = splits[0]
                 page.meta = {}
-                page.original_preview = ''
+                #?# page.original_preview = ''
 
-            elif len(splits) == 2:
+            elif dashed_sections == 2:
                 header = splits[0]
                 try:
                     page.meta = yaml.load(header)
@@ -125,19 +122,52 @@ class Page(object):
                     page.errorlog.append("=== YAML-Errors ===")
                     page.errorlog.extend(e.__str__().split("\n"))
                 page.original = splits[1]
-                page.original_preview = page.meta.get('preview', '')
+                #?# page.original_preview = page.meta.get('preview', '')
 
-            elif len(splits) >= 3:
+            elif dashed_sections > 2:
+                # check whether the additional '---' dividers might be section heading underlines
+                possible_headings = 0
+                dash_lines = []
+                line_counter = len(splits[0].split('\n')) + 1
+                for i in range(1, dashed_sections - 1):
+                    sect_lines = len(splits[i].split('\n')) + 1
+                    line_counter += sect_lines
+                    dash_lines.append(str(line_counter))
+
+                    if len(splits[i].split('\n')[-1].strip()) <= 3:
+                        possible_headings += 1
+
+                if (dashed_sections - 2) == possible_headings:
+                    logging.info("Found more '---' delimited sections in {0} "
+                                 "than the single expected one (wok header). "
+                                 "The additional one(s) seem to be normal text with section heading underlines."
+                                 .format(page.path))
+                else:
+                    logging.warning("Found more '---' delimited sections in {0} "
+                                    "than the single expected one (wok header). "
+                                    "You should check the additional '---' delimiter(s). Meanwhile they are treated as normal text. "
+                                    "[Line(s): {1}]"
+                                    .format(page.path, ", ".join(dash_lines)))
                 header = splits[0]
                 page.meta = {}
-                page.original = '\n'.join(splits[1:])
-                page.original_preview = splits[1]
+                page.original = '\n---\n'.join(splits[1:])
+                #?# page.original_preview = '' #page.original    #splits[1]     ???? todo: Is preview used for anything?
                 try:
                     page.meta.update(yaml.load(header))
                 except yaml.scanner.ScannerError, e:
                     page.errorlog.append("=== YAML-Errors ===")
                     page.errorlog.extend(e.__str__().split("\n"))
-                logging.debug('Got preview')
+                #?# logging.debug('Got preview')
+
+
+            #print "*** splits:"
+            #print splits
+            #print "*** original:"
+            #print page.original
+            #?# #print "*** original_preview:"
+            #?# #print page.original_preview
+
+
 
         page.build_meta()
 
@@ -151,7 +181,7 @@ class Page(object):
         #       but e.g. in rst a failing ".. include" raises an exception and not only prints the error on stderr!
         try:
             page.meta['content'] = page.renderer.render(page.original, page.meta)  # the page.meta might contain renderer options...
-            page.meta['preview'] = page.renderer.render(page.original_preview, page.meta)
+            #?# page.meta['preview'] = page.renderer.render(page.original_preview, page.meta)
         except Exception as e:
             print >> sys.stderr, e
         sys.stderr = stderr_save
