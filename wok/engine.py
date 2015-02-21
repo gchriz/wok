@@ -223,16 +223,23 @@ class Engine(object):
         #print "Trying to rename '%s' to '%s' now" %(src, dest)
         MAX_RETRY_DURATION_s = 3
         startTime = time.clock()
-        while True:
-            try:
-                os.rename(src, dest)
-                break
-            except OSError as e:
-                #print "Error", e, "waiting a bit..."
-                if (time.clock() - startTime) > MAX_RETRY_DURATION_s:
-                    raise
-                else:
-                    time.sleep(0.1)
+        try:
+            while True:
+                try:
+                    os.rename(src, dest)
+                    break
+                except OSError as e:
+                    #print "Error", e, "waiting a bit..."
+                    if (time.clock() - startTime) > MAX_RETRY_DURATION_s:
+                        raise
+                    else:
+                        time.sleep(0.1)
+
+        except (WindowsError, OSError) as e:
+            print "Error:", e
+            print "Waiting a bit for letting an optional Virus Scanner doing its work didn't help."
+            print "Possibly the upload software is (still) running and blocking the files?"
+            sys.exit(3)
 
     def vss_remove(self, f):
         """ virus scanner safe os.remove
@@ -240,16 +247,24 @@ class Engine(object):
         #print "Trying to remove '%s' now" %(f)
         MAX_RETRY_DURATION_s = 3
         startTime = time.clock()
-        while True:
-            try:
-                os.remove(f)
-                break
-            except (OSError, WindowsError) as e:
-                #print "Error", e, "waiting a bit..."
-                if (time.clock() - startTime) > MAX_RETRY_DURATION_s:
-                    raise
-                else:
-                    time.sleep(0.1)
+        try:
+            while True:
+                try:
+                    os.remove(f)
+                    break
+                except (OSError, WindowsError) as e:
+                    #print "Error", e, "waiting a bit..."
+                    if (time.clock() - startTime) > MAX_RETRY_DURATION_s:
+                        raise
+                    else:
+                        time.sleep(0.1)
+
+        except (WindowsError, OSError) as e:
+            print "Error:", e
+            print "Waiting a bit for letting an optional Virus Scanner doing its work didn't help."
+            print "Possibly the upload software is (still) running and blocking the files?"
+            sys.exit(3)
+
 
     def vss_rmtree(self, d):
         """ virus scanner safe shutil.rmtree
@@ -257,16 +272,24 @@ class Engine(object):
         #print "Trying to remove directory tree '%s' now" %(d)
         MAX_RETRY_DURATION_s = 3
         startTime = time.clock()
-        while True:
-            try:
-                shutil.rmtree(d)
-                break
-            except (WindowsError, OSError) as e:
-                #print "Error", e, "waiting a bit..."
-                if (time.clock() - startTime) > MAX_RETRY_DURATION_s:
-                    raise
-                else:
-                    time.sleep(0.1)
+        try:
+            while True:
+                try:
+                    shutil.rmtree(d)
+                    break
+                except (WindowsError, OSError) as e:
+                    #print "Error", e, "waiting a bit..."
+                    if (time.clock() - startTime) > MAX_RETRY_DURATION_s:
+                        raise
+                    else:
+                        time.sleep(0.1)
+
+        except (WindowsError, OSError) as e:
+            print "Error:", e
+            print "Waiting a bit for letting an optional Virus Scanner doing its work didn't help."
+            print "Possibly the upload software is (still) running and blocking the files?"
+            sys.exit(3)
+
 
     def handle_output_dir(self):
         if self.error_count == 0:
@@ -432,8 +455,9 @@ class Engine(object):
 
     def prepare_output(self):
         """
-        Prepare the output/working directory. Remove any contents there already, and
-        then copy over the media files, if they exist.
+        Prepare the output/working directory.
+        Remove any contents already there,
+        and then copy over the media files, if they exist.
         """
 
         output_dir = self.options['working_dir']
@@ -445,9 +469,9 @@ class Engine(object):
                     continue
                 path = os.path.join(output_dir, name)
                 if os.path.isfile(path):
-                    os.unlink(path)
+                    self.vss_remove(path)
                 else:
-                    shutil.rmtree(path)
+                    self.vss_rmtree(path)
         else:
             os.makedirs(output_dir)
 
