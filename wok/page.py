@@ -62,6 +62,7 @@ class Page(object):
         page.meta = meta
         page.options = options
         page.renderer = renderer
+        page.errorlog = []
 
         if 'pagination' in meta:
             logging.debug('from_meta: current page %d' %
