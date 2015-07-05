@@ -35,6 +35,8 @@ are:
 - `url_include_index` (true) - If this option is turned off, then `index.*` on
   the end of urls will be removed in templates. This will turn the url
   `/docs/config/index.html` into `/docs/config/`.
+- `slug_from_filename` (false) - If turned on and there is no slug specified,
+   wok generates the slug name from filename and not from title.
 - `relative_urls` (false) - If this option is turned on, then any urls
   generated will not include a leading '/'. If this is false, all urls
   generated will include a leading '/'.
